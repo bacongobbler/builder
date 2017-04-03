@@ -3,6 +3,7 @@ package gitreceive
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/deis/builder/pkg/k8s"
@@ -67,8 +68,24 @@ func dockerBuilderPod(
 	// {"KEY": "value"}
 	//
 	// So we need to translate the map into json.
-	dockerBuildArgs, _ := json.Marshal(env)
-	addEnvToPod(pod, "DOCKER_BUILD_ARGS", string(dockerBuildArgs))
+	if _, ok := env["DEIS_DOCKER_BUILD_ARGS_ENABLED"]; ok {
+		dockerBuildArgs := []byte{}
+
+		if delimitedKeysI, ok := env["DEIS_DOCKER_BUILD_ARGS"]; ok {
+			delimitedKeys := delimitedKeysI.(string)
+
+			exportedEnv := make(map[string]interface{})
+
+			for _, key := range strings.Split(delimitedKeys, ":") {
+				exportedEnv[key] = env[key]
+			}
+
+			dockerBuildArgs, _ = json.Marshal(exportedEnv)
+		} else {
+			dockerBuildArgs, _ = json.Marshal(env)
+		}
+		addEnvToPod(pod, "DOCKER_BUILD_ARGS", string(dockerBuildArgs))
+	}
 
 	pod.Spec.Containers[0].Name = dockerBuilderName
 	pod.Spec.Containers[0].Image = image
