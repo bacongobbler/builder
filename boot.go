@@ -21,7 +21,9 @@ import (
 	_ "github.com/docker/distribution/registry/storage/driver/s3-aws"
 	_ "github.com/docker/distribution/registry/storage/driver/swift"
 	"github.com/kelseyhightower/envconfig"
-	kcl "k8s.io/kubernetes/pkg/client/unversioned"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 )
 
 const (
@@ -74,22 +76,29 @@ func main() {
 					os.Exit(1)
 				}
 
-				kubeClient, err := kcl.NewInCluster()
+				// creates the in-cluster config
+				config, err := rest.InClusterConfig()
 				if err != nil {
-					log.Printf("Error getting kubernetes client [%s]", err)
+					log.Printf("Error getting kubernetes in-cluster config (%s)", err)
+					os.Exit(1)
+				}
+				// creates the clientset
+				clientset, err := kubernetes.NewForConfig(config)
+				if err != nil {
+					log.Printf("Error getting kubernetes client (%s)", err)
 					os.Exit(1)
 				}
 				log.Printf("Starting health check server on port %d", cnf.HealthSrvPort)
 				healthSrvCh := make(chan error)
 				go func() {
-					if err := healthsrv.Start(cnf, kubeClient.Namespaces(), storageDriver, circ); err != nil {
+					if err := healthsrv.Start(cnf, clientset.CoreV1.Namespaces().List(metav1.ListOptions{}), storageDriver, circ); err != nil {
 						healthSrvCh <- err
 					}
 				}()
 				log.Printf("Starting deleted app cleaner")
 				cleanerErrCh := make(chan error)
 				go func() {
-					if err := cleaner.Run(gitHomeDir, kubeClient.Namespaces(), fs, cnf.CleanerPollSleepDuration(), storageDriver); err != nil {
+					if err := cleaner.Run(gitHomeDir, clientset.CoreV1.Namespaces().List(metav1.ListOptions{}), fs, cnf.CleanerPollSleepDuration(), storageDriver); err != nil {
 						cleanerErrCh <- err
 					}
 				}()

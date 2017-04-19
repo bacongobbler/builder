@@ -1,10 +1,8 @@
-hash: d85b2efb6ab99d7c4d431a95b64116345596b1e371c19c2f55b2be73fff9bcbf
-updated: 2017-02-14T09:23:17.687476614-07:00
+hash: 73eda6d113e669da0d3717af794ae7e2dddc00a7c407afa82737aa1291b82041
+updated: 2017-04-19T15:14:07.566541597-07:00
 imports:
 - name: bitbucket.org/ww/goautoneg
   version: 75cd24fc2f2c2a2088577d12123ddee5f54e0675
-- name: github.com/arschles/assert
-  version: 6882f85ccdc7c1822b146d1a6b0c2c48f91b5140
 - name: github.com/aws/aws-sdk-go
   version: 49c3892b61af1d4996292a3025f36e4dfa25eaee
   subpackages:
@@ -31,7 +29,6 @@ imports:
   - private/protocol/xml/xmlutil
   - private/signer/v4
   - private/waiter
-  - service/cloudfront/sign
   - service/ecr
   - service/s3
 - name: github.com/Azure/azure-sdk-for-go
@@ -45,29 +42,28 @@ imports:
 - name: github.com/blang/semver
   version: 31b736133b98f26d5e078ec9eb591666edfd091f
 - name: github.com/codegangsta/cli
-  version: a65b733b303f0055f8d324d805f393cd3e7a7904
+  version: 8ba6f23b6e36d03666a14bd9421f5e3efcb59aca
 - name: github.com/davecgh/go-spew
-  version: 3e6e67c4dcea3ac2f25fd4731abc0e1deaf36216
+  version: 5215b55f46b2b919f50a1df0eaa5886afe4e3b3d
   subpackages:
   - spew
 - name: github.com/deis/controller-sdk-go
-  version: 27bab7c5535de202635877fa7600d5158b91a757
+  version: 9520b6c460202f376856d042ac4864ee951cdf3a
   subpackages:
   - api
   - hooks
   - pkg/time
 - name: github.com/deis/pkg
-  version: 00e55bded444eea7fadff398f93152e962a0c338
+  version: 28bd07fbcbec5aaaaeda05d362d8ff81f55f4f6c
   subpackages:
   - log
   - prettyprint
-  - time
 - name: github.com/docker/distribution
-  version: 0afef00d5764404d70f86076f364551657d51de6
-  repo: https://github.com/deis/distribution
-  vcs: git
+  version: cd27f179f2c10c5d300e6d09025b538c475b0d51
   subpackages:
   - context
+  - digest
+  - reference
   - registry/client/transport
   - registry/storage/driver
   - registry/storage/driver/azure
@@ -92,7 +88,7 @@ imports:
 - name: github.com/docker/go-units
   version: 0bbddae09c5a5419a8c6dcdd7ff90da3d450393b
 - name: github.com/emicklei/go-restful
-  version: 777bb3f19bcafe2575ffb2a3e46af92509ae9594
+  version: 09691a3b6378b740595c1002f40c34dd5f218a22
   subpackages:
   - log
   - swagger
@@ -100,6 +96,19 @@ imports:
   version: 73d445a93680fa1a78ae23a5839bad48f32ba1ee
 - name: github.com/go-ini/ini
   version: afbd495e5aaea13597b5e14fe514ddeaa4d76fc3
+- name: github.com/go-openapi/jsonpointer
+  version: 46af16f9f7b149af66e5d1bd010e3574dc06de98
+- name: github.com/go-openapi/jsonreference
+  version: 13c6e3589ad90f49bd3e3bbe2c2cb3d7a4142272
+- name: github.com/go-openapi/spec
+  version: 6aced65f8501fe1217321abf0749d354824ba2ff
+- name: github.com/go-openapi/swag
+  version: 1d0bd113de87027671077d3c71eb3ac5d7dbba72
+- name: github.com/gogo/protobuf
+  version: c0656edd0d9eab7c66d1eb0c568f9039345796f7
+  subpackages:
+  - proto
+  - sortkeys
 - name: github.com/golang/glog
   version: 44145f04b68cf362d9c4df2182967c2275eaefed
 - name: github.com/golang/protobuf
@@ -128,7 +137,7 @@ imports:
   - validate
   - version
 - name: github.com/google/gofuzz
-  version: bbcb9da2d746f8bdbd6a936686a0a6067ada0ec5
+  version: 44d81051d367757e1c7c6a5a86423ece9afcf63c
 - name: github.com/gorilla/context
   version: 14f550f51af52180c2eefed15e5fd18d63c0a64a
 - name: github.com/gorilla/mux
@@ -140,7 +149,13 @@ imports:
 - name: github.com/juju/ratelimit
   version: 77ed1c8a01217656d2080ad51981f6e99adaa177
 - name: github.com/kelseyhightower/envconfig
-  version: 9aca109c9aec4633fced9717c4a09ecab3d33111
+  version: 8bf4bbfc795e2c7c8a5ea47b707453ed019e2ad4
+- name: github.com/mailru/easyjson
+  version: d5b7844b561a7bc640052f1b935f7b800330d7e0
+  subpackages:
+  - buffer
+  - jlexer
+  - jwriter
 - name: github.com/matttproud/golang_protobuf_extensions
   version: fc2b8d3a73c4867e51861bbdd5ae3c1f0869dd6a
   subpackages:
@@ -185,11 +200,9 @@ imports:
   subpackages:
   - formatters/logstash
 - name: github.com/spf13/pflag
-  version: 8e7dc108ab3a1ab6ce6d922bbaff5657b88e8e49
-  repo: https://github.com/spf13/pflag
-  vcs: git
+  version: 5644820622454e71517561946e3d94b9f9db6842
 - name: github.com/ugorji/go
-  version: f4485b318aadd133842532f841dc205a8e339d74
+  version: ded73eae5db7e7a0ef6f55aace87a2873c5d2b74
   subpackages:
   - codec
 - name: golang.org/x/crypto
@@ -230,9 +243,7 @@ imports:
   - unicode/norm
   - width
 - name: google.golang.org/api
-  version: fceeaa645c4015c833842e6ed6052b2dda667079
-  repo: https://code.googlesource.com/google-api-go-client
-  vcs: git
+  version: 9bf6e6e569ff057f75d9604a46c52928f17d2b54
   subpackages:
   - gensupport
   - googleapi
@@ -268,8 +279,151 @@ imports:
   - naming
   - peer
   - transport
+- name: gopkg.in/inf.v0
+  version: 3887ee99ecf07df5b447e9b00d9c0b2adaa9f3e4
 - name: gopkg.in/yaml.v2
-  version: eca94c41d994ae2215d455ce578ae6e2dc6ee516
+  version: bef53efd0c76e49e6de55ead051f886bea7e9420
+- name: k8s.io/apimachinery
+  version: 9c89140a45325f83409e90359888133478207c7a
+  subpackages:
+  - pkg/api/errors
+  - pkg/api/meta
+  - pkg/api/resource
+  - pkg/apimachinery
+  - pkg/apimachinery/announced
+  - pkg/apimachinery/registered
+  - pkg/apis/meta/v1
+  - pkg/apis/meta/v1/unstructured
+  - pkg/conversion
+  - pkg/conversion/queryparams
+  - pkg/fields
+  - pkg/labels
+  - pkg/openapi
+  - pkg/runtime
+  - pkg/runtime/schema
+  - pkg/runtime/serializer
+  - pkg/runtime/serializer/json
+  - pkg/runtime/serializer/protobuf
+  - pkg/runtime/serializer/recognizer
+  - pkg/runtime/serializer/streaming
+  - pkg/runtime/serializer/versioning
+  - pkg/selection
+  - pkg/types
+  - pkg/util/errors
+  - pkg/util/framer
+  - pkg/util/intstr
+  - pkg/util/json
+  - pkg/util/net
+  - pkg/util/rand
+  - pkg/util/runtime
+  - pkg/util/sets
+  - pkg/util/validation
+  - pkg/util/validation/field
+  - pkg/util/wait
+  - pkg/util/yaml
+  - pkg/version
+  - pkg/watch
+  - third_party/forked/golang/reflect
+- name: k8s.io/client-go
+  version: 69f0a81e21e046e59fb102cddff3e138d7a327f5
+  subpackages:
+  - discovery
+  - discovery/fake
+  - kubernetes
+  - kubernetes/fake
+  - kubernetes/scheme
+  - kubernetes/typed/apps/v1beta1
+  - kubernetes/typed/apps/v1beta1/fake
+  - kubernetes/typed/authentication/v1
+  - kubernetes/typed/authentication/v1/fake
+  - kubernetes/typed/authentication/v1beta1
+  - kubernetes/typed/authentication/v1beta1/fake
+  - kubernetes/typed/authorization/v1
+  - kubernetes/typed/authorization/v1/fake
+  - kubernetes/typed/authorization/v1beta1
+  - kubernetes/typed/authorization/v1beta1/fake
+  - kubernetes/typed/autoscaling/v1
+  - kubernetes/typed/autoscaling/v1/fake
+  - kubernetes/typed/autoscaling/v2alpha1
+  - kubernetes/typed/autoscaling/v2alpha1/fake
+  - kubernetes/typed/batch/v1
+  - kubernetes/typed/batch/v1/fake
+  - kubernetes/typed/batch/v2alpha1
+  - kubernetes/typed/batch/v2alpha1/fake
+  - kubernetes/typed/certificates/v1beta1
+  - kubernetes/typed/certificates/v1beta1/fake
+  - kubernetes/typed/core/v1
+  - kubernetes/typed/core/v1/fake
+  - kubernetes/typed/extensions/v1beta1
+  - kubernetes/typed/extensions/v1beta1/fake
+  - kubernetes/typed/policy/v1beta1
+  - kubernetes/typed/policy/v1beta1/fake
+  - kubernetes/typed/rbac/v1alpha1
+  - kubernetes/typed/rbac/v1alpha1/fake
+  - kubernetes/typed/rbac/v1beta1
+  - kubernetes/typed/rbac/v1beta1/fake
+  - kubernetes/typed/settings/v1alpha1
+  - kubernetes/typed/settings/v1alpha1/fake
+  - kubernetes/typed/storage/v1
+  - kubernetes/typed/storage/v1/fake
+  - kubernetes/typed/storage/v1beta1
+  - kubernetes/typed/storage/v1beta1/fake
+  - pkg/api
+  - pkg/api/install
+  - pkg/api/v1
+  - pkg/api/v1/ref
+  - pkg/apis/apps
+  - pkg/apis/apps/install
+  - pkg/apis/apps/v1beta1
+  - pkg/apis/authentication
+  - pkg/apis/authentication/install
+  - pkg/apis/authentication/v1
+  - pkg/apis/authentication/v1beta1
+  - pkg/apis/authorization
+  - pkg/apis/authorization/install
+  - pkg/apis/authorization/v1
+  - pkg/apis/authorization/v1beta1
+  - pkg/apis/autoscaling
+  - pkg/apis/autoscaling/install
+  - pkg/apis/autoscaling/v1
+  - pkg/apis/autoscaling/v2alpha1
+  - pkg/apis/batch
+  - pkg/apis/batch/install
+  - pkg/apis/batch/v1
+  - pkg/apis/batch/v2alpha1
+  - pkg/apis/certificates
+  - pkg/apis/certificates/install
+  - pkg/apis/certificates/v1beta1
+  - pkg/apis/extensions
+  - pkg/apis/extensions/install
+  - pkg/apis/extensions/v1beta1
+  - pkg/apis/policy
+  - pkg/apis/policy/install
+  - pkg/apis/policy/v1beta1
+  - pkg/apis/rbac
+  - pkg/apis/rbac/install
+  - pkg/apis/rbac/v1alpha1
+  - pkg/apis/rbac/v1beta1
+  - pkg/apis/settings
+  - pkg/apis/settings/install
+  - pkg/apis/settings/v1alpha1
+  - pkg/apis/storage
+  - pkg/apis/storage/install
+  - pkg/apis/storage/v1
+  - pkg/apis/storage/v1beta1
+  - pkg/util
+  - pkg/util/parsers
+  - pkg/version
+  - rest
+  - rest/watch
+  - testing
+  - tools/clientcmd/api
+  - tools/metrics
+  - transport
+  - util/cert
+  - util/clock
+  - util/flowcontrol
+  - util/integer
 - name: k8s.io/kubernetes
   version: 3eed1e3be6848b877ff80a93da3785d9034d0a4f
   subpackages:
@@ -346,7 +500,9 @@ imports:
   - pkg/watch/json
   - third_party/forked/reflect
 - name: speter.net/go/exp/math/dec/inf
-  version: 46a40649338836f5d25521ce343379da79ef2184
+  version: 42ca6cd68aa922bc3f32f1e056e61b65945d9ad7
   repo: https://github.com/belua/inf
   vcs: git
-testImports: []
+testImports:
+- name: github.com/arschles/assert
+  version: bb58b908265b5931732079df03f2818bf2167ba0

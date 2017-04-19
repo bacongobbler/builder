@@ -1,17 +1,15 @@
 package healthsrv
 
 import (
-	"k8s.io/kubernetes/pkg/api"
-	"k8s.io/kubernetes/pkg/fields"
-	"k8s.io/kubernetes/pkg/labels"
+	v1 "k8s.io/client-go/pkg/api/v1"
 )
 
-// NamespaceLister is an (*k8s.io/kubernetes/pkg/client/unversioned).Client compatible interface
+// NamespaceLister is an (*k8s.io/client-go/pkg/api/v1).NamespaceLister compatible interface
 // that provides just the ListBuckets cross-section of functionality. It can also be implemented
 // for unit tests.
 type NamespaceLister interface {
 	// List lists all namespaces that are selected by the given label and field selectors.
-	List(opts api.ListOptions) (*api.NamespaceList, error)
+	List(opts v1.ListOptions) (*v1.NamespaceList, error)
 }
 
 // listNamespaces calls nl.List(...) and sends the results back on the various given channels.
@@ -20,8 +18,8 @@ type NamespaceLister interface {
 // On success, it passes the namespace list on succCh, and on failure, it passes the error on
 // errCh. At most one of {succCh, errCh} will be sent on. If stopCh is closed, no pending or
 // future sends will occur.
-func listNamespaces(nl NamespaceLister, succCh chan<- *api.NamespaceList, errCh chan<- error, stopCh <-chan struct{}) {
-	nsList, err := nl.List(api.ListOptions{LabelSelector: labels.Everything(), FieldSelector: fields.Everything()})
+func listNamespaces(nl NamespaceLister, succCh chan<- *v1.NamespaceList, errCh chan<- error, stopCh <-chan struct{}) {
+	nsList, err := nl.List(v1.ListOptions{})
 	if err != nil {
 		select {
 		case errCh <- err:

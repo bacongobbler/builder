@@ -10,15 +10,18 @@ import (
 	"strings"
 	"time"
 
-	"github.com/deis/builder/pkg/gitreceive"
-	"github.com/deis/builder/pkg/k8s"
-	"github.com/deis/builder/pkg/sys"
-	"github.com/deis/pkg/log"
 	"github.com/docker/distribution/context"
 	storagedriver "github.com/docker/distribution/registry/storage/driver"
-	"k8s.io/kubernetes/pkg/api"
-	"k8s.io/kubernetes/pkg/fields"
-	"k8s.io/kubernetes/pkg/labels"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/fields"
+	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/client-go/kubernetes"
+	v1 "k8s.io/client-go/pkg/api/v1"
+	"k8s.io/client-go/rest"
+
+	"github.com/deis/builder/pkg/gitreceive"
+	"github.com/deis/builder/pkg/sys"
+	"github.com/deis/pkg/log"
 )
 
 const (
@@ -46,7 +49,7 @@ func localDirs(gitHome string, filter func(string) bool) ([]string, error) {
 }
 
 // getDiff gets the directories that are not in namespaceList
-func getDiff(namespaceList []api.Namespace, dirs []string) []string {
+func getDiff(namespaceList []*v1.Namespace, dirs []string) []string {
 	var ret []string
 
 	// create a set of lowercase namespace names
@@ -121,9 +124,9 @@ func deleteFromObjectStore(app string, storageDriver storagedriver.StorageDriver
 
 // Run starts the deleted app cleaner. Every pollSleepDuration, it compares the result of nsLister.List with the directories in the top level of gitHome on the local file system.
 // On any error, it uses log messages to output a human readable description of what happened.
-func Run(gitHome string, nsLister k8s.NamespaceLister, fs sys.FS, pollSleepDuration time.Duration, storageDriver storagedriver.StorageDriver) error {
+func Run(gitHome string, nsLister v1.NamespaceLister, fs sys.FS, pollSleepDuration time.Duration, storageDriver storagedriver.StorageDriver) error {
 	for {
-		nsList, err := nsLister.List(api.ListOptions{LabelSelector: labels.Everything(), FieldSelector: fields.Everything()})
+		nsList, err := nsLister.List(metav1.ListOptions{LabelSelector: labels.Everything(), FieldSelector: fields.Everything()})
 		if err != nil {
 			log.Err("Cleaner error listing namespaces (%s)", err)
 			continue

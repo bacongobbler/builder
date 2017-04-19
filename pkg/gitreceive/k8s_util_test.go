@@ -7,9 +7,9 @@ import (
 	"testing"
 
 	"github.com/arschles/assert"
-	"github.com/deis/builder/pkg/k8s"
-	"k8s.io/kubernetes/pkg/api"
-	apierrors "k8s.io/kubernetes/pkg/api/errors"
+
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	v1 "k8s.io/client-go/pkg/api/v1"
 )
 
 func TestDockerBuilderPodName(t *testing.T) {
@@ -53,7 +53,7 @@ type slugBuildCase struct {
 	gitShortHash               string
 	buildPack                  string
 	slugBuilderImage           string
-	slugBuilderImagePullPolicy api.PullPolicy
+	slugBuilderImagePullPolicy v1.PullPolicy
 	storageType                string
 	builderPodNodeSelector     map[string]string
 }
@@ -67,7 +67,7 @@ type dockerBuildCase struct {
 	gitShortHash                 string
 	imgName                      string
 	dockerBuilderImage           string
-	dockerBuilderImagePullPolicy api.PullPolicy
+	dockerBuilderImagePullPolicy v1.PullPolicy
 	storageType                  string
 	builderPodNodeSelector       map[string]string
 }
@@ -81,7 +81,7 @@ func TestBuildPod(t *testing.T) {
 	buildArgsEnv["DEIS_DOCKER_BUILD_ARGS_ENABLED"] = "1"
 	buildArgsEnv["KEY"] = "VALUE"
 	envSecretName := "test-build-env"
-	var pod *api.Pod
+	var pod *v1.Pod
 
 	emptyNodeSelector := make(map[string]string)
 
@@ -93,14 +93,14 @@ func TestBuildPod(t *testing.T) {
 	nodeSelector2["network"] = "fast"
 
 	slugBuilds := []slugBuildCase{
-		{true, "test", "default", envSecretName, "tar", "put-url", "cache-url", "deadbeef", "", "", api.PullAlways, "", emptyNodeSelector},
-		{true, "test", "default", envSecretName, "tar", "put-url", "cache-url", "deadbeef", "", "", api.PullAlways, "", emptyNodeSelector},
-		{true, "test", "default", envSecretName, "tar", "put-url", "", "deadbeef", "", "", api.PullAlways, "", emptyNodeSelector},
-		{true, "test", "default", envSecretName, "tar", "put-url", "cache-url", "deadbeef", "buildpack", "", api.PullAlways, "", emptyNodeSelector},
-		{true, "test", "default", envSecretName, "tar", "put-url", "cache-url", "deadbeef", "buildpack", "", api.PullAlways, "", emptyNodeSelector},
-		{true, "test", "default", envSecretName, "tar", "put-url", "cache-url", "deadbeef", "buildpack", "customimage", api.PullAlways, "", nil},
-		{true, "test", "default", envSecretName, "tar", "put-url", "cache-url", "deadbeef", "buildpack", "customimage", api.PullIfNotPresent, "", nodeSelector1},
-		{true, "test", "default", envSecretName, "tar", "put-url", "cache-url", "deadbeef", "buildpack", "customimage", api.PullNever, "", nodeSelector2},
+		{true, "test", "default", envSecretName, "tar", "put-url", "cache-url", "deadbeef", "", "", v1.PullAlways, "", emptyNodeSelector},
+		{true, "test", "default", envSecretName, "tar", "put-url", "cache-url", "deadbeef", "", "", v1.PullAlways, "", emptyNodeSelector},
+		{true, "test", "default", envSecretName, "tar", "put-url", "", "deadbeef", "", "", v1.PullAlways, "", emptyNodeSelector},
+		{true, "test", "default", envSecretName, "tar", "put-url", "cache-url", "deadbeef", "buildpack", "", v1.PullAlways, "", emptyNodeSelector},
+		{true, "test", "default", envSecretName, "tar", "put-url", "cache-url", "deadbeef", "buildpack", "", v1.PullAlways, "", emptyNodeSelector},
+		{true, "test", "default", envSecretName, "tar", "put-url", "cache-url", "deadbeef", "buildpack", "customimage", v1.PullAlways, "", nil},
+		{true, "test", "default", envSecretName, "tar", "put-url", "cache-url", "deadbeef", "buildpack", "customimage", v1.PullIfNotPresent, "", nodeSelector1},
+		{true, "test", "default", envSecretName, "tar", "put-url", "cache-url", "deadbeef", "buildpack", "customimage", v1.PullNever, "", nodeSelector2},
 	}
 
 	for _, build := range slugBuilds {
@@ -161,14 +161,14 @@ func TestBuildPod(t *testing.T) {
 	}
 
 	dockerBuilds := []dockerBuildCase{
-		{true, "test", "default", emptyEnv, "tar", "deadbeef", "", "", api.PullAlways, "", nodeSelector1},
-		{true, "test", "default", env, "tar", "deadbeef", "", "", api.PullAlways, "", nodeSelector2},
-		{true, "test", "default", emptyEnv, "tar", "deadbeef", "img", "", api.PullAlways, "", emptyNodeSelector},
-		{true, "test", "default", env, "tar", "deadbeef", "img", "", api.PullAlways, "", emptyNodeSelector},
-		{true, "test", "default", env, "tar", "deadbeef", "img", "customimage", api.PullAlways, "", emptyNodeSelector},
-		{true, "test", "default", env, "tar", "deadbeef", "img", "customimage", api.PullIfNotPresent, "", emptyNodeSelector},
-		{true, "test", "default", env, "tar", "deadbeef", "img", "customimage", api.PullNever, "", nil},
-		{true, "test", "default", buildArgsEnv, "tar", "deadbeef", "img", "customimage", api.PullIfNotPresent, "", emptyNodeSelector},
+		{true, "test", "default", emptyEnv, "tar", "deadbeef", "", "", v1.PullAlways, "", nodeSelector1},
+		{true, "test", "default", env, "tar", "deadbeef", "", "", v1.PullAlways, "", nodeSelector2},
+		{true, "test", "default", emptyEnv, "tar", "deadbeef", "img", "", v1.PullAlways, "", emptyNodeSelector},
+		{true, "test", "default", env, "tar", "deadbeef", "img", "", v1.PullAlways, "", emptyNodeSelector},
+		{true, "test", "default", env, "tar", "deadbeef", "img", "customimage", v1.PullAlways, "", emptyNodeSelector},
+		{true, "test", "default", env, "tar", "deadbeef", "img", "customimage", v1.PullIfNotPresent, "", emptyNodeSelector},
+		{true, "test", "default", env, "tar", "deadbeef", "img", "customimage", v1.PullNever, "", nil},
+		{true, "test", "default", buildArgsEnv, "tar", "deadbeef", "img", "customimage", v1.PullIfNotPresent, "", emptyNodeSelector},
 	}
 	regEnv := map[string]string{"REG_LOC": "on-cluster"}
 	for _, build := range dockerBuilds {
@@ -222,7 +222,7 @@ func TestBuildPod(t *testing.T) {
 	}
 }
 
-func checkForEnv(t *testing.T, pod *api.Pod, key, expVal string) {
+func checkForEnv(t *testing.T, pod *v1.Pod, key, expVal string) {
 	val, err := envValueFromKey(pod, key)
 	if err != nil {
 		t.Errorf("%v", err)
@@ -232,7 +232,7 @@ func checkForEnv(t *testing.T, pod *api.Pod, key, expVal string) {
 	}
 }
 
-func envValueFromKey(pod *api.Pod, key string) (string, error) {
+func envValueFromKey(pod *v1.Pod, key string) (string, error) {
 	for _, env := range pod.Spec.Containers[0].Env {
 		if env.Name == key {
 			return env.Value, nil
@@ -244,35 +244,13 @@ func envValueFromKey(pod *api.Pod, key string) (string, error) {
 
 func TestCreateAppEnvConfigSecretErr(t *testing.T) {
 	expectedErr := errors.New("get secret error")
-	secretsClient := &k8s.FakeSecret{
-		FnCreate: func(*api.Secret) (*api.Secret, error) {
-			return &api.Secret{}, expectedErr
-		},
-	}
-	err := createAppEnvConfigSecret(secretsClient, "test", nil)
+	clientset := fake.NewSimpleClientset()
+	err := createAppEnvConfigSecret(clientset.Secrets(""), "test", nil)
 	assert.Err(t, err, expectedErr)
 }
 
 func TestCreateAppEnvConfigSecretSuccess(t *testing.T) {
-	secretsClient := &k8s.FakeSecret{
-		FnCreate: func(*api.Secret) (*api.Secret, error) {
-			return &api.Secret{}, nil
-		},
-	}
-	err := createAppEnvConfigSecret(secretsClient, "test", nil)
-	assert.NoErr(t, err)
-}
-
-func TestCreateAppEnvConfigSecretAlreadyExists(t *testing.T) {
-	alreadyExistErr := apierrors.NewAlreadyExists(api.Resource("tests"), "1")
-	secretsClient := &k8s.FakeSecret{
-		FnCreate: func(*api.Secret) (*api.Secret, error) {
-			return &api.Secret{}, alreadyExistErr
-		},
-		FnUpdate: func(*api.Secret) (*api.Secret, error) {
-			return &api.Secret{}, nil
-		},
-	}
-	err := createAppEnvConfigSecret(secretsClient, "test", nil)
+	clientset := fake.NewSimpleClientset()
+	err := createAppEnvConfigSecret(clientset.Secrets(""), "test", nil)
 	assert.NoErr(t, err)
 }

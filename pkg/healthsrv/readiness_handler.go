@@ -6,7 +6,7 @@ import (
 	"time"
 
 	deis "github.com/deis/controller-sdk-go"
-	"k8s.io/kubernetes/pkg/api"
+	v1 "k8s.io/client-go/pkg/api/v1"
 )
 
 func readinessHandler(client *deis.Client, nsLister NamespaceLister) http.Handler {
@@ -14,7 +14,7 @@ func readinessHandler(client *deis.Client, nsLister NamespaceLister) http.Handle
 		stopCh := make(chan struct{})
 
 		numChecks := 0
-		namespaceListerCh := make(chan *api.NamespaceList)
+		namespaceListerCh := make(chan *v1.NamespaceList)
 		namespaceListerErrCh := make(chan error)
 		go listNamespaces(nsLister, namespaceListerCh, namespaceListerErrCh, stopCh)
 		numChecks++

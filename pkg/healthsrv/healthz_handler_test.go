@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"k8s.io/kubernetes/pkg/api"
+	v1 "k8s.io/client-go/pkg/api/v1"
 
 	"github.com/docker/distribution/context"
 
@@ -51,15 +51,15 @@ func (e failureGetClient) Get(url string) (*http.Response, error) {
 
 type emptyNamespaceLister struct{}
 
-func (n emptyNamespaceLister) List(opts api.ListOptions) (*api.NamespaceList, error) {
-	return &api.NamespaceList{}, nil
+func (n emptyNamespaceLister) List(opts v1.ListOptions) (*v1.NamespaceList, error) {
+	return &v1.NamespaceList{}, nil
 }
 
 type errNamespaceLister struct {
 	err error
 }
 
-func (e errNamespaceLister) List(opts api.ListOptions) (*api.NamespaceList, error) {
+func (e errNamespaceLister) List(opts v1.ListOptions) (*v1.NamespaceList, error) {
 	return nil, e.err
 }
 

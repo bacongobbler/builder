@@ -11,19 +11,20 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/deis/builder/pkg/controller"
-	"github.com/deis/builder/pkg/git"
-	"github.com/deis/builder/pkg/k8s"
-	"github.com/deis/builder/pkg/storage"
-	"github.com/deis/builder/pkg/sys"
 	deisAPI "github.com/deis/controller-sdk-go/api"
 	"github.com/deis/controller-sdk-go/hooks"
 	"github.com/deis/pkg/log"
 	"github.com/docker/distribution/context"
 	storagedriver "github.com/docker/distribution/registry/storage/driver"
 	"gopkg.in/yaml.v2"
-	"k8s.io/kubernetes/pkg/api"
-	client "k8s.io/kubernetes/pkg/client/unversioned"
+	"k8s.io/client-go/kubernetes"
+	v1 "k8s.io/client-go/pkg/api/v1"
+
+	"github.com/deis/builder/pkg/controller"
+	"github.com/deis/builder/pkg/git"
+	"github.com/deis/builder/pkg/k8s"
+	"github.com/deis/builder/pkg/storage"
+	"github.com/deis/builder/pkg/sys"
 )
 
 // repoCmd returns exec.Command(first, others...) with its current working directory repoDir
@@ -48,21 +49,11 @@ func run(cmd *exec.Cmd) error {
 func build(
 	conf *Config,
 	storageDriver storagedriver.StorageDriver,
-	kubeClient *client.Client,
+	kubeClient *kubernetes.Clientset,
 	fs sys.FS,
 	env sys.Env,
 	builderKey,
 	rawGitSha string) error {
-
-	dockerBuilderImagePullPolicy, err := k8s.PullPolicyFromString(conf.DockerBuilderImagePullPolicy)
-	if err != nil {
-		return err
-	}
-
-	slugBuilderImagePullPolicy, err := k8s.PullPolicyFromString(conf.SlugBuilderImagePullPolicy)
-	if err != nil {
-		return err
-	}
 
 	repo := conf.Repository
 	gitSha, err := git.NewSha(rawGitSha)
@@ -156,7 +147,7 @@ func build(
 		return fmt.Errorf("uploading %s to %s (%v)", absAppTgz, slugBuilderInfo.TarKey(), err)
 	}
 
-	var pod *api.Pod
+	var pod *v1.Pod
 	var buildPodName string
 	image := appName
 
@@ -192,7 +183,7 @@ func build(
 			conf.RegistryHost,
 			conf.RegistryPort,
 			registryEnv,
-			dockerBuilderImagePullPolicy,
+			v1.PullPolicy(conf.DockerBuilderImagePullPolicy),
 			builderPodNodeSelector,
 		)
 	} else {
@@ -224,7 +215,7 @@ func build(
 			buildPackURL,
 			conf.StorageType,
 			conf.SlugBuilderImage,
-			slugBuilderImagePullPolicy,
+			v1.PullPolicy(conf.SlugBuilderImagePullPolicy),
 			builderPodNodeSelector,
 		)
 	}
@@ -255,9 +246,9 @@ func build(
 	}
 
 	req := kubeClient.Get().Namespace(newPod.Namespace).Name(newPod.Name).Resource("pods").SubResource("log").VersionedParams(
-		&api.PodLogOptions{
+		&v1.PodLogOptions{
 			Follow: true,
-		}, api.ParameterCodec)
+		}, v1.ParameterCodec)
 
 	rc, err := req.Stream()
 	if err != nil {

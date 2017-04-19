@@ -6,16 +6,17 @@ import (
 	"errors"
 	"strings"
 
+	"k8s.io/client-go/kubernetes"
+	v1 "k8s.io/client-go/pkg/api/v1"
+
 	"github.com/deis/builder/pkg/storage"
-	"k8s.io/kubernetes/pkg/api"
-	client "k8s.io/kubernetes/pkg/client/unversioned"
 )
 
 const (
 	registrySecret = "registry-secret"
 )
 
-func getDetailsFromRegistrySecret(secretGetter client.SecretsInterface, secret string) (map[string]string, error) {
+func getDetailsFromRegistrySecret(secretGetter v1.SecretInterface, secret string) (map[string]string, error) {
 	regSecret, err := secretGetter.Get(secret)
 	if err != nil {
 		return nil, err
@@ -27,12 +28,12 @@ func getDetailsFromRegistrySecret(secretGetter client.SecretsInterface, secret s
 	return regDetails, nil
 }
 
-func getDetailsFromDockerConfigSecret(secretGetter client.SecretsInterface, secret string) (map[string]string, error) {
+func getDetailsFromDockerConfigSecret(secretGetter v1.SecretInterface, secret string) (map[string]string, error) {
 	configSecret, err := secretGetter.Get(secret)
 	if err != nil {
 		return nil, err
 	}
-	dockerConfigJSONBytes := configSecret.Data[api.DockerConfigJsonKey]
+	dockerConfigJSONBytes := configSecret.Data[v1.DockerConfigJsonKey]
 	var secretData map[string]interface{}
 	if err = json.Unmarshal(dockerConfigJSONBytes, &secretData); err != nil {
 		return nil, err
@@ -62,9 +63,9 @@ func getDetailsFromDockerConfigSecret(secretGetter client.SecretsInterface, secr
 	return regDetails, nil
 }
 
-func getRegistryDetails(kubeClient client.SecretsNamespacer, image *string, registryLocation, namespace, registrySecretPrefix string) (map[string]string, error) {
-	registryConfigSecretInterface := kubeClient.Secrets(*image)
-	privateRegistrySecretInterface := kubeClient.Secrets(namespace)
+func getRegistryDetails(kubeClient kubernetes.Clientset, image *string, registryLocation, namespace, registrySecretPrefix string) (map[string]string, error) {
+	registryConfigSecretInterface := kubeClient.CoreV1.Secrets(*image)
+	privateRegistrySecretInterface := kubeClient.CoreV1.Secrets(namespace)
 	registryEnv := make(map[string]string)
 	var regSecretData map[string]string
 	var err error

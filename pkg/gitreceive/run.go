@@ -6,12 +6,13 @@ import (
 	"os"
 	"strings"
 
-	builderconf "github.com/deis/builder/pkg/conf"
-	"github.com/deis/builder/pkg/sys"
 	"github.com/deis/pkg/log"
 	storagedriver "github.com/docker/distribution/registry/storage/driver"
+	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 
-	client "k8s.io/kubernetes/pkg/client/unversioned"
+	builderconf "github.com/deis/builder/pkg/conf"
+	"github.com/deis/builder/pkg/sys"
 )
 
 func readLine(line string) (string, string, string, error) {
@@ -32,9 +33,15 @@ func Run(conf *Config, fs sys.FS, env sys.Env, storageDriver storagedriver.Stora
 		return err
 	}
 
-	kubeClient, err := client.NewInCluster()
+	// creates the in-cluster config
+	config, err := rest.InClusterConfig()
 	if err != nil {
-		return fmt.Errorf("couldn't reach the api server (%s)", err)
+		return fmt.Errorf("Error getting kubernetes in-cluster config (%s)", err)
+	}
+	// creates the clientset
+	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return fmt.Errorf("Error getting kubernetes client (%s)", err)
 	}
 
 	scanner := bufio.NewScanner(os.Stdin)
@@ -50,7 +57,7 @@ func Run(conf *Config, fs sys.FS, env sys.Env, storageDriver storagedriver.Stora
 
 		// if we're processing a receive-pack on an existing repo, run a build
 		if strings.HasPrefix(conf.SSHOriginalCommand, "git-receive-pack") {
-			if err := build(conf, storageDriver, kubeClient, fs, env, builderKey, newRev); err != nil {
+			if err := build(conf, storageDriver, clientset, fs, env, builderKey, newRev); err != nil {
 				return err
 			}
 		}

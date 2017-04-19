@@ -6,9 +6,8 @@ import (
 	"testing"
 
 	"github.com/arschles/assert"
-	"github.com/deis/builder/pkg/k8s"
-	"k8s.io/kubernetes/pkg/api"
-	client "k8s.io/kubernetes/pkg/client/unversioned"
+	"k8s.io/client-go/kubernetes/fake"
+	v1 "k8s.io/client-go/pkg/api/v1"
 )
 
 const (
@@ -18,50 +17,32 @@ const (
 
 func TestGetDetailsFromRegistrySecretErr(t *testing.T) {
 	expectedErr := errors.New("get secret error")
-	getter := &k8s.FakeSecret{
-		FnGet: func(string) (*api.Secret, error) {
-			return &api.Secret{}, expectedErr
-		},
-	}
-	_, err := getDetailsFromRegistrySecret(getter, testSecret)
+	clientset := fake.NewSimpleClientset(&v1.Secret{})
+	_, err := getDetailsFromRegistrySecret(clientset.CoreV1.Secrets(""), testSecret)
 	assert.Err(t, err, expectedErr)
 }
 
 func TestGetDetailsFromRegistrySecretSuccess(t *testing.T) {
 	data := map[string][]byte{"test": []byte("test")}
 	expectedData := map[string]string{"test": "test"}
-	secret := api.Secret{Data: data}
-	getter := &k8s.FakeSecret{
-		FnGet: func(string) (*api.Secret, error) {
-			return &secret, nil
-		},
-	}
-	secretData, err := getDetailsFromRegistrySecret(getter, testSecret)
+	clientset := fake.NewSimpleClientset(&v1.Secret{Data: data})
+	secretData, err := getDetailsFromRegistrySecret(clientset.CoreV1.Secrets(""), testSecret)
 	assert.NoErr(t, err)
 	assert.Equal(t, secretData, expectedData, "secret data")
 }
 
 func TestGetDetailsFromDockerConfigSecretErr(t *testing.T) {
 	expectedErr := errors.New("get secret error")
-	getter := &k8s.FakeSecret{
-		FnGet: func(string) (*api.Secret, error) {
-			return &api.Secret{}, expectedErr
-		},
-	}
-	_, err := getDetailsFromDockerConfigSecret(getter, testSecret)
+	clientset := fake.NewSimpleClientset(&v1.Secret{})
+	_, err := getDetailsFromDockerConfigSecret(clientset.CoreV1.Secrets(""), testSecret)
 	assert.Err(t, expectedErr, err)
 }
 
 func TestGetDetailsFromDockerConfigSecretJsonErr(t *testing.T) {
 	expectedErr := errors.New("invalid character 'o' in literal null (expecting 'u')")
-	data := map[string][]byte{api.DockerConfigJsonKey: []byte("not a json")}
-	secret := api.Secret{Data: data}
-	getter := &k8s.FakeSecret{
-		FnGet: func(string) (*api.Secret, error) {
-			return &secret, nil
-		},
-	}
-	_, err := getDetailsFromDockerConfigSecret(getter, testSecret)
+	data := map[string][]byte{v1.DockerConfigJsonKey: []byte("not a json")}
+	clientset := fake.NewSimpleClientset(&v1.Secret{Data: data})
+	_, err := getDetailsFromDockerConfigSecret(clientset.CoreV1.Secrets(""), testSecret)
 	assert.Equal(t, expectedErr.Error(), err.Error(), "error")
 }
 
@@ -78,14 +59,9 @@ func TestGetDetailsFromDockerConfigSecretTokenerr(t *testing.T) {
     }
 `)
 	data := make(map[string][]byte)
-	data[api.DockerConfigJsonKey] = auth
-	secret := api.Secret{Data: data}
-	getter := &k8s.FakeSecret{
-		FnGet: func(string) (*api.Secret, error) {
-			return &secret, nil
-		},
-	}
-	_, err := getDetailsFromDockerConfigSecret(getter, testSecret)
+	data[v1.DockerConfigJsonKey] = auth
+	clientset := fake.NewSimpleClientset(&v1.Secret{Data: data})
+	_, err := getDetailsFromDockerConfigSecret(clientset.CoreV1.Secrets(""), testSecret)
 	assert.Err(t, expectedErr, err)
 }
 
@@ -103,34 +79,18 @@ func TestGetDetailsFromDockerConfigSecretSuccess(t *testing.T) {
 `)
 	expectedData := map[string]string{"DEIS_REGISTRY_USERNAME": "testuser", "DEIS_REGISTRY_PASSWORD": "testpassword", "DEIS_REGISTRY_HOSTNAME": "https://test.io"}
 	data := make(map[string][]byte)
-	data[api.DockerConfigJsonKey] = auth
-	secret := api.Secret{Data: data}
-	getter := &k8s.FakeSecret{
-		FnGet: func(string) (*api.Secret, error) {
-			return &secret, nil
-		},
-	}
-	regData, err := getDetailsFromDockerConfigSecret(getter, testSecret)
+	data[v1.DockerConfigJsonKey] = auth
+	clientset := fake.NewSimpleClientset(&v1.Secret{Data: data})
+	regData, err := getDetailsFromDockerConfigSecret(clientset.CoreV1.Secrets(""), testSecret)
 	assert.NoErr(t, err)
 	assert.Equal(t, expectedData, regData, "registry details")
-
 }
 
 func TestGetRegistryDetailsOffclusterErr(t *testing.T) {
 	expectedErr := errors.New("get secret error")
-	getter := &k8s.FakeSecret{
-		FnGet: func(string) (*api.Secret, error) {
-			return &api.Secret{}, expectedErr
-		},
-	}
-
-	kubeClient := &k8s.FakeSecretsNamespacer{
-		Fn: func(string) client.SecretsInterface {
-			return getter
-		},
-	}
+	clientset := fake.NewSimpleClientset(&v1.Secret{})
 	image := "test-image"
-	_, err := getRegistryDetails(kubeClient, &image, "off-cluster", deisNamespace, "private-registry")
+	_, err := getRegistryDetails(clientset, &image, "off-cluster", deisNamespace, "private-registry")
 	assert.Err(t, err, expectedErr)
 }
 
@@ -138,20 +98,9 @@ func TestGetRegistryDetailsOffclusterSuccess(t *testing.T) {
 	data := map[string][]byte{"organization": []byte("kmala"), "hostname": []byte("quay.io")}
 	expectedData := map[string]string{"DEIS_REGISTRY_HOSTNAME": "quay.io", "DEIS_REGISTRY_ORGANIZATION": "kmala"}
 	expectedImage := "quay.io/kmala/test-image"
-	secret := api.Secret{Data: data}
-	getter := &k8s.FakeSecret{
-		FnGet: func(string) (*api.Secret, error) {
-			return &secret, nil
-		},
-	}
-
-	kubeClient := &k8s.FakeSecretsNamespacer{
-		Fn: func(string) client.SecretsInterface {
-			return getter
-		},
-	}
+	clientset := fake.NewSimpleClientset(&v1.Secret{Data: data})
 	image := "test-image"
-	regDetails, err := getRegistryDetails(kubeClient, &image, "off-cluster", deisNamespace, "private-registry")
+	regDetails, err := getRegistryDetails(clientset, &image, "off-cluster", deisNamespace, "private-registry")
 	assert.NoErr(t, err)
 	assert.Equal(t, expectedData, regDetails, "registry details")
 	assert.Equal(t, expectedImage, image, "image")
@@ -170,41 +119,28 @@ func TestGetRegistryDetailsGCRSuccess(t *testing.T) {
     }
 `)
 	configData := make(map[string][]byte)
-	configData[api.DockerConfigJsonKey] = auth
-	configSecret := api.Secret{Data: configData}
-	configGetter := &k8s.FakeSecret{
-		FnGet: func(string) (*api.Secret, error) {
-			return &configSecret, nil
-		},
-	}
-
+	configData[v1.DockerConfigJsonKey] = auth
 	srvAccount := []byte(`
 		{
 		"project_id": "deis-test"
 	}
 		`)
 	data := map[string][]byte{"key.json": srvAccount}
-	secret := api.Secret{Data: data}
-	getter := &k8s.FakeSecret{
-		FnGet: func(string) (*api.Secret, error) {
-			return &secret, nil
+	clientset := fake.NewSimpleClientset(
+		&v1.Secret{
+			Data: configData,
 		},
-	}
-
-	kubeClient := &k8s.FakeSecretsNamespacer{
-		Fn: func(namespace string) client.SecretsInterface {
-			if namespace == "deis" {
-				return getter
-			}
-			return configGetter
+		&v1.Secret{
+			ObjectMeta: {Namespace: "deis"},
+			Data:       data,
 		},
-	}
+	)
 
 	expectedData := map[string]string{"DEIS_REGISTRY_USERNAME": "testuser", "DEIS_REGISTRY_PASSWORD": "testpassword", "DEIS_REGISTRY_HOSTNAME": "https://test.io", "DEIS_REGISTRY_GCS_PROJ_ID": "deis-test"}
 	expectedImage := "test.io/deis-test/test-image"
 
 	image := "test-image"
-	regDetails, err := getRegistryDetails(kubeClient, &image, "gcr", deisNamespace, "private-registry")
+	regDetails, err := getRegistryDetails(clientset, &image, "gcr", deisNamespace, "private-registry")
 
 	assert.NoErr(t, err)
 	assert.Equal(t, expectedData, regDetails, "registry details")
@@ -213,30 +149,13 @@ func TestGetRegistryDetailsGCRSuccess(t *testing.T) {
 
 func TestGetRegistryDetailsGCRConfigErr(t *testing.T) {
 	expectedErr := errors.New("get secret error")
-	configGetter := &k8s.FakeSecret{
-		FnGet: func(string) (*api.Secret, error) {
-			return &api.Secret{}, expectedErr
+	clientset := fake.NewSimpleClientset(
+		&v1.Secret{
+			ObjectMeta: {Namespace: "deis"},
 		},
-	}
-
-	getter := &k8s.FakeSecret{
-		FnGet: func(string) (*api.Secret, error) {
-			return &api.Secret{}, nil
-		},
-	}
-
-	kubeClient := &k8s.FakeSecretsNamespacer{
-		Fn: func(namespace string) client.SecretsInterface {
-			if namespace == "deis" {
-				return getter
-			}
-			return configGetter
-		},
-	}
-
+	)
 	image := "test-image"
-	_, err := getRegistryDetails(kubeClient, &image, "gcr", deisNamespace, "private-registry")
-
+	_, err := getRegistryDetails(clientset, &image, "gcr", deisNamespace, "private-registry")
 	assert.Err(t, err, expectedErr)
 }
 
@@ -254,31 +173,16 @@ func TestGetRegistryDetailsGCRSecretErr(t *testing.T) {
 		}
 `)
 	configData := make(map[string][]byte)
-	configData[api.DockerConfigJsonKey] = auth
-	configSecret := api.Secret{Data: configData}
-	configGetter := &k8s.FakeSecret{
-		FnGet: func(string) (*api.Secret, error) {
-			return &configSecret, nil
+	configData[v1.DockerConfigJsonKey] = auth
+	clientset := fake.NewSimpleClientset(
+		&v1.Secret{
+			ObjectMeta: {Namespace: "deis"},
+			Data:       configData,
 		},
-	}
-
-	getter := &k8s.FakeSecret{
-		FnGet: func(string) (*api.Secret, error) {
-			return &api.Secret{}, expectedErr
-		},
-	}
-
-	kubeClient := &k8s.FakeSecretsNamespacer{
-		Fn: func(namespace string) client.SecretsInterface {
-			if namespace == "deis" {
-				return getter
-			}
-			return configGetter
-		},
-	}
+	)
 
 	image := "test-image"
-	_, err := getRegistryDetails(kubeClient, &image, "gcr", deisNamespace, "private-registry")
+	_, err := getRegistryDetails(clientset, &image, "gcr", deisNamespace, "private-registry")
 
 	assert.Err(t, err, expectedErr)
 }
@@ -297,33 +201,20 @@ func TestGetRegistryDetailsGCRJsonErr(t *testing.T) {
     }
 `)
 	configData := make(map[string][]byte)
-	configData[api.DockerConfigJsonKey] = auth
-	configSecret := api.Secret{Data: configData}
-	configGetter := &k8s.FakeSecret{
-		FnGet: func(string) (*api.Secret, error) {
-			return &configSecret, nil
-		},
-	}
-
+	configData[v1.DockerConfigJsonKey] = auth
 	data := map[string][]byte{"key.json": []byte("test")}
-	secret := api.Secret{Data: data}
-	getter := &k8s.FakeSecret{
-		FnGet: func(string) (*api.Secret, error) {
-			return &secret, nil
+	clientset := fake.NewSimpleClientset(
+		&v1.Secret{
+			Data: configData,
 		},
-	}
-
-	kubeClient := &k8s.FakeSecretsNamespacer{
-		Fn: func(namespace string) client.SecretsInterface {
-			if namespace == "deis" {
-				return getter
-			}
-			return configGetter
+		&v1.Secret{
+			ObjectMeta: {Namespace: "deis"},
+			Data:       data,
 		},
-	}
+	)
 
 	image := "test-image"
-	_, err := getRegistryDetails(kubeClient, &image, "gcr", deisNamespace, "private-registry")
+	_, err := getRegistryDetails(clientset, &image, "gcr", deisNamespace, "private-registry")
 
 	assert.Equal(t, expectedErr.Error(), err.Error(), "error")
 }
